@@ -723,7 +723,6 @@ img {
 .marquee {
   display: flex;
   width: max-content;
-  animation: marqueeScroll 30s linear infinite;
 }
 
 .marquee:hover {
@@ -731,7 +730,6 @@ img {
 }
 
 .marquee-reverse {
-  animation-direction: reverse;
   margin-top: 20px;
 }
 
@@ -762,11 +760,7 @@ img {
   transform: scale(1.05);
 }
 
-@keyframes marqueeScroll {
-  to {
-    transform: translateX(-50%);
-  }
-}
+
 
 /* ── Projects Section ── */
 .projects-grid {

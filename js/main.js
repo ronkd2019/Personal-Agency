@@ -371,7 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = document.querySelector(href);
         if (target) {
           const offset = navbar.offsetHeight;
-          const top = target.getBoundingClientRect().top + window.scrollY - offset;
           window.scrollTo({
             top: top,
             behavior: 'smooth'
@@ -514,5 +513,100 @@ document.addEventListener('DOMContentLoaded', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
+
+  // ================================================================
+  // 13. NATIVE VELOCITY MARQUEE SCROLL
+  // ================================================================
+  const marquees = document.querySelectorAll('.marquee');
+  let scrollVelocity = 0;
+  let lastScrollY = window.scrollY;
+  let isScrolling = false;
+  let scrollTimeout;
+
+  // Track scroll velocity
+  window.addEventListener('scroll', () => {
+    isScrolling = true;
+    const currentScrollY = window.scrollY;
+    // Calculate raw velocity
+    scrollVelocity = currentScrollY - lastScrollY;
+    lastScrollY = currentScrollY;
+
+    // Reset when scroll stops
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      isScrolling = false;
+    }, 50); // 50ms without scroll event means stopped
+  }, { passive: true });
+
+  // Animation Loop for Marquees
+  marquees.forEach((marquee) => {
+    const content = marquee.querySelector('.marquee-content');
+    if (!content) return;
+
+    // The content is duplicated in HTML (2 .marquee-content children)
+    const isReverse = marquee.classList.contains('marquee-reverse');
+
+    // To move left (forward), we animate from 0% to -50% translation.
+    // To move right (reverse), we animate from -50% to 0% translation to avoid empty space on the left side.
+    let position = isReverse ? -50 : 0;
+
+    // Base speed pixels per frame - ultra slow default ("barely creeping")
+    const baseSpeed = 0.02;
+
+    // Using a lerped/smoothed velocity value so it doesn't instantly snap back
+    let smoothedVelocityMultiplier = 1;
+
+    // Track hover state for pausing
+    let isHovered = false;
+    marquee.addEventListener('mouseenter', () => isHovered = true);
+    marquee.addEventListener('mouseleave', () => isHovered = false);
+
+    function animateMarquee() {
+      if (!isHovered) {
+        // 1. Calculate the current target multiplier based on scroll velocity
+        let targetMultiplier = 1;
+
+        if (isScrolling) {
+          // Boost speed based on how fast the user is scrolling
+          // Since base speed is now tiny, we need a larger multiplier to feel responsive
+          const speedBoost = Math.abs(scrollVelocity) * 0.3;
+          targetMultiplier = 1 + speedBoost;
+          // Cap the max speed 
+          targetMultiplier = Math.min(targetMultiplier, 40);
+        }
+
+        // 2. Smoothly interpolate current multiplier towards target multiplier
+        smoothedVelocityMultiplier += (targetMultiplier - smoothedVelocityMultiplier) * 0.05;
+
+        // 3. Apply Speed
+        const currentSpeed = baseSpeed * smoothedVelocityMultiplier;
+
+        // 4. Update Position & Loop
+        if (isReverse) {
+          // Moving right (reverse direction)
+          position += currentSpeed;
+          if (position >= 0) {
+            // Reached the right edge, snap back to -50% to seamlessly loop
+            position -= 50;
+          }
+        } else {
+          // Moving left (forward direction)
+          position -= currentSpeed;
+          if (position <= -50) {
+            // Reached the halfway point, snap back to 0% to seamlessly loop
+            position += 50;
+          }
+        }
+
+        // 5. Apply Transform (using translate3d for hardware acceleration)
+        marquee.style.transform = `translate3d(${position}%, 0, 0)`;
+      }
+
+      requestAnimationFrame(animateMarquee);
+    }
+
+    // Start loop for this marquee
+    animateMarquee();
+  });
 
 });
