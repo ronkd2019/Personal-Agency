@@ -1,0 +1,518 @@
+/* ============================================
+   ECLIPTIC FLARE — INTERACTIVE FEATURES
+   All JavaScript for the portfolio website
+   ============================================ */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ── Utility: Lerp ──
+  const lerp = (start, end, factor) => start + (end - start) * factor;
+
+  // ── Check for touch device ──
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  // ================================================================
+  // 1. CUSTOM MAGNETIC CURSOR
+  // ================================================================
+  if (!isTouchDevice) {
+    const cursorDot = document.getElementById('cursorDot');
+    const cursorOutline = document.getElementById('cursorOutline');
+    let mouseX = 0, mouseY = 0;
+    let outlineX = 0, outlineY = 0;
+    let dotX = 0, dotY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    // Cursor animation loop
+    function animateCursor() {
+      // Dot follows with slight delay
+      dotX = lerp(dotX, mouseX, 0.2);
+      dotY = lerp(dotY, mouseY, 0.2);
+      cursorDot.style.left = dotX + 'px';
+      cursorDot.style.top = dotY + 'px';
+
+      // Outline follows with more delay
+      outlineX = lerp(outlineX, mouseX, 0.1);
+      outlineY = lerp(outlineY, mouseY, 0.1);
+      cursorOutline.style.left = outlineX + 'px';
+      cursorOutline.style.top = outlineY + 'px';
+
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+
+    // Hover effects on interactive elements
+    const hoverTargets = document.querySelectorAll('a, button, .btn, .card-link, .social-link, .nav-link, .form-input, .hamburger');
+    hoverTargets.forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorDot.classList.add('hovering');
+        cursorOutline.classList.add('hovering');
+      });
+      el.addEventListener('mouseleave', () => {
+        cursorDot.classList.remove('hovering');
+        cursorOutline.classList.remove('hovering');
+      });
+    });
+  }
+
+  // ================================================================
+  // 2. MAGNETIC BUTTONS
+  // ================================================================
+  if (!isTouchDevice) {
+    const magneticButtons = document.querySelectorAll('.magnetic-btn');
+
+    magneticButtons.forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translate(0, 0)';
+        btn.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      });
+
+      btn.addEventListener('mouseenter', () => {
+        btn.style.transition = 'transform 0.1s ease-out';
+      });
+    });
+  }
+
+  // ================================================================
+  // 3. PARTICLE CONSTELLATION BACKGROUND
+  // ================================================================
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let particleMouseX = 0, particleMouseY = 0;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  document.addEventListener('mousemove', (e) => {
+    particleMouseX = e.clientX;
+    particleMouseY = e.clientY;
+  });
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 2 + 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.4;
+      this.speedY = (Math.random() - 0.5) * 0.4;
+      this.opacity = Math.random() * 0.5 + 0.2;
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+
+      // Wrap around edges
+      if (this.x < 0) this.x = canvas.width;
+      if (this.x > canvas.width) this.x = 0;
+      if (this.y < 0) this.y = canvas.height;
+      if (this.y > canvas.height) this.y = 0;
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(79, 195, 247, ${this.opacity})`;
+      ctx.fill();
+    }
+  }
+
+  // Create particles
+  const particleCount = Math.min(80, Math.floor((window.innerWidth * window.innerHeight) / 15000));
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  function connectParticles() {
+    const maxDistance = 150;
+    const mouseMaxDistance = 200;
+
+    for (let i = 0; i < particles.length; i++) {
+      // Connect to mouse
+      const dxMouse = particleMouseX - particles[i].x;
+      const dyMouse = particleMouseY - particles[i].y;
+      const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+
+      if (distMouse < mouseMaxDistance) {
+        const opacity = 1 - distMouse / mouseMaxDistance;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particleMouseX, particleMouseY);
+        ctx.strokeStyle = `rgba(79, 195, 247, ${opacity * 0.4})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Connect particles to each other
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < maxDistance) {
+          const opacity = 1 - dist / maxDistance;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(79, 195, 247, ${opacity * 0.15})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+
+    connectParticles();
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // ================================================================
+  // 4. TEXT SCRAMBLE ANIMATION
+  // ================================================================
+  class TextScramble {
+    constructor(el) {
+      this.el = el;
+      this.chars = '!<>-_\\/[]{}—=+*^?#________';
+      this.frame = 0;
+      this.queue = [];
+      this.resolve = null;
+    }
+
+    setText(newText) {
+      const oldText = this.el.innerText;
+      const length = Math.max(oldText.length, newText.length);
+      const promise = new Promise(resolve => this.resolve = resolve);
+      this.queue = [];
+
+      for (let i = 0; i < length; i++) {
+        const from = oldText[i] || '';
+        const to = newText[i] || '';
+        const start = Math.floor(Math.random() * 40);
+        const end = start + Math.floor(Math.random() * 40);
+        this.queue.push({ from, to, start, end });
+      }
+
+      cancelAnimationFrame(this.frameRequest);
+      this.frame = 0;
+      this.update();
+      return promise;
+    }
+
+    update() {
+      let output = '';
+      let complete = 0;
+
+      for (let i = 0; i < this.queue.length; i++) {
+        let { from, to, start, end, char } = this.queue[i];
+
+        if (this.frame >= end) {
+          complete++;
+          output += to;
+        } else if (this.frame >= start) {
+          if (!char || Math.random() < 0.28) {
+            char = this.chars[Math.floor(Math.random() * this.chars.length)];
+            this.queue[i].char = char;
+          }
+          output += `<span class="text-accent" style="opacity:0.6">${char}</span>`;
+        } else {
+          output += from;
+        }
+      }
+
+      this.el.innerHTML = output;
+
+      if (complete === this.queue.length) {
+        this.resolve();
+      } else {
+        this.frameRequest = requestAnimationFrame(() => this.update());
+        this.frame++;
+      }
+    }
+  }
+
+  // Initialize text scramble on hero elements
+  const heroName = document.getElementById('heroName');
+  const heroTitle = document.getElementById('heroTitle');
+
+  if (heroName) {
+    const nameScramble = new TextScramble(heroName);
+    const originalName = heroName.innerText;
+    heroName.innerText = '';
+
+    setTimeout(() => {
+      nameScramble.setText(originalName);
+    }, 800);
+  }
+
+  if (heroTitle) {
+    const titleScramble = new TextScramble(heroTitle);
+    const originalTitle = heroTitle.innerText;
+    heroTitle.innerText = '';
+
+    setTimeout(() => {
+      titleScramble.setText(originalTitle);
+    }, 1200);
+  }
+
+  // ================================================================
+  // 5. CARD GLOW FOLLOW
+  // ================================================================
+  if (!isTouchDevice) {
+    const tiltCards = document.querySelectorAll('.tilt-card');
+
+    tiltCards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Update glow position
+        const glow = card.querySelector('.card-glow');
+        if (glow) {
+          glow.style.setProperty('--mouse-x', x + 'px');
+          glow.style.setProperty('--mouse-y', y + 'px');
+        }
+      });
+    });
+  }
+
+  // ================================================================
+  // 6. SCROLL-TRIGGERED REVEAL ANIMATIONS
+  // ================================================================
+  const revealElements = document.querySelectorAll('.reveal');
+
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Optional: stop observing after reveal
+        // revealObserver.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.15,
+    rootMargin: '0px 0px -50px 0px'
+  });
+
+  revealElements.forEach(el => revealObserver.observe(el));
+
+  // ================================================================
+  // 7. NAVBAR — Scroll Effects & Active Section
+  // ================================================================
+  const navbar = document.getElementById('navbar');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('.section');
+
+  // Scrolled state
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  // Active section spy
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('data-section') === id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, {
+    threshold: 0.3,
+    rootMargin: '-80px 0px -50% 0px'
+  });
+
+  sections.forEach(section => sectionObserver.observe(section));
+
+  // Smooth scroll on nav link click
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+
+      // Only smooth scroll for internal anchor links (starts with #)
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          const offset = navbar.offsetHeight;
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({
+            top: top,
+            behavior: 'smooth'
+          });
+
+          // Close mobile menu if open
+          const navLinksEl = document.getElementById('navLinks');
+          const hamburger = document.getElementById('hamburger');
+          if (navLinksEl.classList.contains('open')) {
+            hamburger.classList.remove('active');
+            navLinksEl.classList.remove('open');
+            document.body.style.overflow = '';
+          }
+        }
+      }
+    });
+  });
+
+  // ================================================================
+  // 8. HAMBURGER MENU
+  // ================================================================
+  const hamburger = document.getElementById('hamburger');
+  const navLinksEl = document.getElementById('navLinks');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navLinksEl.classList.toggle('open');
+  });
+
+  // ================================================================
+  // 9. ANIMATED STAT COUNTERS
+  // ================================================================
+  const statNumbers = document.querySelectorAll('.stat-number');
+
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const target = parseInt(entry.target.getAttribute('data-count'));
+        animateCounter(entry.target, target);
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  statNumbers.forEach(el => counterObserver.observe(el));
+
+  function animateCounter(el, target) {
+    let current = 0;
+    const increment = target / 60;
+    const duration = 1500;
+    const step = duration / 60;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        el.textContent = target;
+        clearInterval(timer);
+      } else {
+        el.textContent = Math.floor(current);
+      }
+    }, step);
+  }
+
+  // ================================================================
+  // 10. SCROLL INDICATOR FADE
+  // ================================================================
+  const scrollIndicator = document.getElementById('scrollIndicator');
+
+  window.addEventListener('scroll', () => {
+    if (scrollIndicator) {
+      const opacity = Math.max(0, 1 - window.scrollY / 300);
+      scrollIndicator.style.opacity = opacity;
+    }
+  });
+
+  // ================================================================
+  // 11. CONTACT FORM (via api/contact.js)
+  // ================================================================
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = contactForm.querySelector('.btn');
+      const originalText = btn.innerHTML;
+
+      const nameInput = document.getElementById('nameInput');
+      const emailInput = document.getElementById('emailInput');
+      const messageInput = document.getElementById('messageInput');
+
+      btn.innerHTML = '<span>Sending...</span>';
+      btn.style.opacity = '0.7';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: nameInput.value,
+            email: emailInput.value,
+            message: messageInput.value
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          btn.innerHTML = '<span>Message Sent! ✓</span>';
+          btn.style.background = 'linear-gradient(135deg, #00c853, #69f0ae)';
+          contactForm.reset();
+        } else {
+          throw new Error(data.message || 'Failed to send message.');
+        }
+      } catch (error) {
+        console.error("Form error:", error);
+        btn.innerHTML = '<span>Error Sending</span>';
+        btn.style.background = '#ff5252';
+        alert(error.message || "There was a problem sending your message. Please try again.");
+      } finally {
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.style.opacity = '1';
+          btn.disabled = false;
+        }, 3000);
+      }
+    });
+  }
+
+  // ================================================================
+  // 12. SMOOTH NAV LOGO CLICK
+  // ================================================================
+  const navLogo = document.querySelector('.nav-logo');
+  if (navLogo) {
+    navLogo.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+});
