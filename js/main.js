@@ -5,26 +5,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ================================================================
-  // 0. SMOOTH SCROLL (LENIS)
-  // ================================================================
-  if (typeof Lenis !== 'undefined') {
-    const lenis = new Lenis({
-      duration: 0.8, // Decreased from 1.2 to 0.8 to remove floaty delay
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-      mouseMultiplier: 1.2, // Increased slightly to make wheel feel more responsive
-      smoothTouch: false,
-      touchMultiplier: 2,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-  }
-
   // ── Utility: Lerp ──
   const lerp = (start, end, factor) => start + (end - start) * factor;
 
