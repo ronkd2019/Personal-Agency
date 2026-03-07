@@ -49,7 +49,7 @@
       </a>
       <ul class="nav-links" id="navLinks">
         <li><a href="#about" class="nav-link" data-section="about">About</a></li>
-        <li><a href="#templates" class="nav-link" data-section="templates">Templates</a></li>
+        <li><a href="#templates-section" class="nav-link" data-section="templates-section">Templates</a></li>
         <li><a href="#services" class="nav-link" data-section="services">Services</a></li>
         <li><a href="consult.html" class="nav-link">Consult AI</a></li>
         <li><a href="#contact" class="nav-link" data-section="contact">Contact</a></li>
@@ -88,55 +88,56 @@
   </section>
 
   <!-- ===== ABOUT SECTION ===== -->
-  <section class="about section" id="about">
-    <div class="container">
-      <div class="section-header reveal">
-        <span class="section-number">01</span>
-        <h2 class="section-title">About Me</h2>
-        <div class="section-line"></div>
-      </div>
-      <div class="about-grid">
-        <div class="about-text reveal reveal-left">
-          <p class="about-intro">
-            I run a <span class="text-accent">boutique web studio</span> focused on delivering websites that don't
-            just
-            look incredible, but actually drive results for your business.
-          </p>
-          <p>
-            Whether you need a quick launch using one of my premium, ready-to-go templates (like my popular Wedding
-            Template), or a completely custom-coded web application with complex databases and interactive 3D
-            elements,
-            I have the expertise to bring it to life.
-          </p>
-          <p>
-            I handle everything from UI/UX design to full-stack development, ensuring performance, accessibility,
-            and
-            that undeniable "wow" factor on every project.
-          </p>
-          <div class="about-stats">
-            <div class="stat">
-              <span class="stat-number" data-count="10">0</span><span class="stat-suffix">+</span>
-              <span class="stat-label">Premium Templates</span>
-            </div>
-            <div class="stat">
-              <span class="stat-number" data-count="50">0</span><span class="stat-suffix">+</span>
-              <span class="stat-label">Successful Launches</span>
-            </div>
-            <div class="stat">
-              <span class="stat-number" data-count="100">0</span><span class="stat-suffix">%</span>
-              <span class="stat-label">Client Satisfaction</span>
+  <section class="about scroll-type-section" id="about">
+    <div class="scroll-type-sticky" id="aboutSticky">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="section-number">01</span>
+          <h2 class="section-title">About Me</h2>
+          <div class="section-line"></div>
+        </div>
+        <div class="about-grid">
+          <div class="about-text reveal reveal-left">
+            <p class="about-intro">
+              I run a <span class="text-accent">boutique web studio</span> focused on delivering websites that don't
+              just
+              look incredible, but actually drive results for your business.
+            </p>
+            <p>
+              Whether you need a quick launch using one of my premium, ready-to-go templates (like my popular Wedding
+              Template), or a completely custom-coded web application with complex databases and interactive 3D
+              elements,
+              I have the expertise to bring it to life.
+            </p>
+            <p>
+              I handle everything from UI/UX design to full-stack development, ensuring performance, accessibility,
+              and
+              that undeniable "wow" factor on every project.
+            </p>
+            <div class="about-stats">
+              <div class="stat">
+                <span class="stat-number" data-count="10">0</span><span class="stat-suffix">+</span>
+                <span class="stat-label">Premium Templates</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" data-count="50">0</span><span class="stat-suffix">+</span>
+                <span class="stat-label">Successful Launches</span>
+              </div>
+              <div class="stat">
+                <span class="stat-number" data-count="100">0</span><span class="stat-suffix">%</span>
+                <span class="stat-label">Client Satisfaction</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="about-visual reveal reveal-right">
-          <div class="code-window">
-            <div class="code-header">
-              <span class="code-dot code-dot-red"></span>
-              <span class="code-dot code-dot-yellow"></span>
-              <span class="code-dot code-dot-green"></span>
-              <span class="code-filename">developer.js</span>
-            </div>
-            <pre class="code-body"><code><span class="code-keyword">const</span> <span class="code-variable">developer</span> = {
+          <div class="about-visual reveal reveal-right">
+            <div class="code-window">
+              <div class="code-header">
+                <span class="code-dot code-dot-red"></span>
+                <span class="code-dot code-dot-yellow"></span>
+                <span class="code-dot code-dot-green"></span>
+                <span class="code-filename">developer.js</span>
+              </div>
+              <pre class="code-body"><code id="codeTypeArea"><span class="code-keyword">const</span> <span class="code-variable">developer</span> = {
   <span class="code-property">name</span>: <span class="code-string">"Daniil Kaidalov"</span>,
   <span class="code-property">studio</span>: <span class="code-string">"Premium Web Services"</span>,
   <span class="code-property">offerings</span>: [
@@ -146,9 +147,28 @@
   <span class="code-property">mission</span>: <span class="code-string">"Elevate your digital presence"</span>,
   <span class="code-property">accepting_clients</span>: <span class="code-boolean">true</span>
 };</code></pre>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===== GLOBAL REACH SECTION ===== -->
+  <section class="global-reach scroll-reach-section" id="global-reach">
+    <div class="scroll-reach-sticky">
+      <div class="container global-reach-content" id="globalReachText">
+        <div class="section-header">
+          <span class="section-number">02</span>
+          <h2 class="section-title">Global Impact</h2>
+          <div class="section-line"></div>
+        </div>
+        <div class="globe-overlay">
+          <h3 class="globe-title">Worldwide Delivery</h3>
+          <p class="globe-subtitle">Based in Warsaw, scaling globally.</p>
+        </div>
+      </div>
+      <div id="globeViz" class="globe-viz-container"></div>
     </div>
   </section>
 
@@ -156,7 +176,7 @@
   <section class="skills section" id="skills">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-number">02</span>
+        <span class="section-number">03</span>
         <h2 class="section-title">Tech Stack</h2>
         <div class="section-line"></div>
       </div>
@@ -228,7 +248,7 @@
   <section class="templates section" id="templates-section">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-number">03</span>
+        <span class="section-number">04</span>
         <h2 class="section-title" id="templates">Templates & Work</h2>
         <div class="section-line"></div>
       </div>
@@ -347,7 +367,7 @@
   <section class="services section" id="services">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-number">04</span>
+        <span class="section-number">05</span>
         <h2 class="section-title">Services & Pricing</h2>
         <div class="section-line"></div>
       </div>
@@ -402,7 +422,7 @@
   <section class="contact section" id="contact">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-number">05</span>
+        <span class="section-number">06</span>
         <h2 class="section-title">Let's Connect</h2>
         <div class="section-line"></div>
       </div>
@@ -480,6 +500,8 @@
     </div>
   </footer>
 
+  <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
   <script src="js/main.js"></script>
 </body>
 

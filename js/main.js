@@ -5,6 +5,26 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ================================================================
+  // 0. SMOOTH SCROLL (LENIS)
+  // ================================================================
+  if (typeof Lenis !== 'undefined') {
+    const lenis = new Lenis({
+      duration: 0.8, // Decreased from 1.2 to 0.8 to remove floaty delay
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+      mouseMultiplier: 1.2, // Increased slightly to make wheel feel more responsive
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+
   // ── Utility: Lerp ──
   const lerp = (start, end, factor) => start + (end - start) * factor;
 
@@ -608,5 +628,244 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start loop for this marquee
     animateMarquee();
   });
+
+  // ================================================================
+  // 14. SCROLL-TO-TYPE CODE
+  // ================================================================
+  const codeTypeArea = document.getElementById('codeTypeArea');
+  const aboutSection = document.getElementById('about');
+
+  if (codeTypeArea && aboutSection) {
+    function wrapTextNodes(element) {
+      const nodes = Array.from(element.childNodes);
+      nodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          if (text.trim().length > 0) {
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < text.length; i++) {
+              const span = document.createElement('span');
+              span.textContent = text[i];
+              span.className = 'type-char';
+              span.style.opacity = '0.05';
+              fragment.appendChild(span);
+            }
+            element.replaceChild(fragment, node);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          wrapTextNodes(node);
+        }
+      });
+    }
+
+    wrapTextNodes(codeTypeArea);
+    const typeChars = document.querySelectorAll('.type-char');
+
+    window.addEventListener('scroll', () => {
+      const rect = aboutSection.getBoundingClientRect();
+      const scrollableHeight = rect.height - window.innerHeight;
+
+      let progress = 0;
+      if (rect.top <= 0) {
+        progress = Math.abs(rect.top) / scrollableHeight;
+      }
+
+      progress = Math.max(0, Math.min(1, progress));
+
+      const charsToShow = Math.floor(progress * typeChars.length);
+
+      typeChars.forEach((char, index) => {
+        if (index < charsToShow) {
+          char.style.opacity = '1';
+          char.style.textShadow = '0 0 10px rgba(79, 195, 247, 0.4)';
+        } else {
+          char.style.opacity = '0.05';
+          char.style.textShadow = 'none';
+        }
+      });
+    }, { passive: true });
+  }
+
+  // ================================================================
+  // 15. GLOBE GL (Global Reach)
+  // ================================================================
+  const globeElem = document.getElementById('globeViz');
+  const globalReachSection = document.getElementById('global-reach');
+
+  if (globeElem && window.Globe && globalReachSection) {
+    const colorHex = '#4fc3f7';   // Accent primary
+    const colorHexMuted = 'rgba(79, 195, 247, 0.2)'; // Accent muted
+    const bgDark = 'rgba(0,0,0,0)'; // Transparent for container gradient
+
+    const warsaw = { lat: 52.2297, lng: 21.0122 };
+
+    // Sample locations representing clients around the world
+    const targetLocations = [
+      { lat: 40.7128, lng: -74.0060, name: 'New York' },
+      { lat: 34.0522, lng: -118.2437, name: 'Los Angeles' },
+      { lat: 51.5074, lng: -0.1278, name: 'London' },
+      { lat: -33.8688, lng: 151.2093, name: 'Sydney' },
+      { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
+      { lat: -23.5505, lng: -46.6333, name: 'Sao Paulo' },
+      { lat: 25.2048, lng: 55.2708, name: 'Dubai' },
+      { lat: 1.3521, lng: 103.8198, name: 'Singapore' }
+    ];
+
+    let currentArcs = [];
+
+    const myGlobe = Globe()(globeElem)
+      .backgroundColor(bgDark)
+      .showGlobe(false)
+      .showAtmosphere(true)
+      .atmosphereColor(colorHex)
+      .atmosphereAltitude(0.15)
+      .arcStartLat(d => d.startLat)
+      .arcStartLng(d => d.startLng)
+      .arcEndLat(d => d.endLat)
+      .arcEndLng(d => d.endLng)
+      .arcColor(d => d.color)
+      .arcDashLength(1) // Long dash length to look like a solid growing line
+      .arcDashGap(10) // Huge gap so the dash never repeats
+      .arcDashInitialGap(d => d.initialGap) // Dynamically set gap based on scroll
+      .arcDashAnimateTime(0) // No auto-animation, controlled by scroll 
+      .arcsTransitionDuration(0);
+
+    // Fetch geojson and render as dot-map using hex polygons
+    fetch('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
+      .then(res => res.json())
+      .then(countries => {
+        myGlobe
+          .hexPolygonsData(countries.features)
+          .hexPolygonResolution(3)
+          .hexPolygonMargin(0.3)
+          .hexPolygonColor(() => colorHexMuted);
+      });
+
+    // Auto-rotate the globe slowly
+    myGlobe.controls().autoRotate = true;
+    myGlobe.controls().autoRotateSpeed = 0.5;
+    myGlobe.controls().enableZoom = false; // Disable zoom so page scroll isn't blocked
+
+    // Position the camera to show Europe center stage initially
+    myGlobe.pointOfView({ lat: 25, lng: 15, altitude: 2.2 });
+
+    // Make responsive on window resize
+    window.addEventListener('resize', () => {
+      myGlobe.width(globeElem.clientWidth);
+      myGlobe.height(globeElem.clientHeight);
+    });
+
+    // Scroll listener for arcs & globe entry
+    window.addEventListener('scroll', () => {
+      const rect = globalReachSection.getBoundingClientRect();
+      const scrollableHeight = rect.height - window.innerHeight;
+
+      let progress = 0;
+      if (rect.top <= 0) {
+        progress = Math.abs(rect.top) / scrollableHeight;
+      }
+
+      progress = Math.max(0, Math.min(1, progress));
+
+      // 1. Globe Entry Animation (progress 0 to 0.15)
+      const entryThreshold = 0.15;
+      let entryProgress = progress / entryThreshold;
+      entryProgress = Math.max(0, Math.min(1, entryProgress));
+
+      // Easing function for smoother entry (ease-out cubic)
+      const easeOut = 1 - Math.pow(1 - entryProgress, 3);
+
+      // Slide up from 100vh below and fade in
+      globeElem.style.transform = `translateY(${(1 - easeOut) * 100}vh)`;
+      globeElem.style.opacity = easeOut;
+
+      // 2. Arc Animation (progress 0.15 to 0.8)
+      // We start drawing arcs AFTER entry is complete
+      let arcMasterProgress = 0;
+      if (progress > 0.15) {
+        arcMasterProgress = (progress - 0.15) / 0.65;
+      }
+      arcMasterProgress = Math.max(0, Math.min(1, arcMasterProgress));
+
+      // 3. Text Entry Animation (progress 0.8 to 1.0)
+      // Text reveals after all arcs are mostly visible
+      let textProgress = 0;
+      if (progress > 0.8) {
+        textProgress = (progress - 0.8) / 0.2;
+      }
+      textProgress = Math.max(0, Math.min(1, textProgress));
+      const textEaseOut = 1 - Math.pow(1 - textProgress, 3);
+
+      const textElem = document.getElementById('globalReachText');
+      if (textElem) {
+        textElem.style.opacity = textEaseOut;
+        textElem.style.transform = `translateY(${(1 - textEaseOut) * 30}px)`;
+      }
+
+      const numLocs = targetLocations.length;
+      const arcsToRender = [];
+      const pointsToRender = [];
+
+      // Give Warsaw a solid dot when globe begins to be visible
+      if (entryProgress > 0) {
+        pointsToRender.push({
+          lat: warsaw.lat,
+          lng: warsaw.lng,
+          color: '#4fc3f7',
+          radius: 0.8 * easeOut,
+          altitude: 0.05
+        });
+      }
+
+      targetLocations.forEach((loc, index) => {
+        // Calculate specific progress for this arc (staggered in pairs to speed it up)
+        const pairIndex = Math.floor(index / 2);
+        const numPairs = Math.ceil(numLocs / 2);
+
+        const arcStart = pairIndex / numPairs;
+
+        // Draw duration allows slight overlap of drawing sequences
+        const drawDuration = (1 / numPairs) * 1.5;
+        const arcEnd = Math.min(arcStart + drawDuration, 1.0);
+
+        let arcProgress = (arcMasterProgress - arcStart) / (arcEnd - arcStart);
+        arcProgress = Math.max(0, Math.min(1, arcProgress));
+
+        if (arcProgress > 0) {
+          arcsToRender.push({
+            startLat: warsaw.lat,
+            startLng: warsaw.lng,
+            endLat: loc.lat,
+            endLng: loc.lng,
+            color: ['#4fc3f7', '#80d8ff'],
+            initialGap: 1 - arcProgress
+          });
+        }
+
+        // Highlight dot if arc has reached the destination
+        if (arcProgress >= 1 || arcMasterProgress >= arcEnd) {
+          pointsToRender.push({
+            lat: loc.lat,
+            lng: loc.lng,
+            color: '#ffffff', // bright white highlight
+            radius: 0.6,
+            altitude: 0.02
+          });
+        }
+      });
+
+      myGlobe.arcsData(arcsToRender);
+
+      // Render the points for finished arcs
+      myGlobe.pointsData(pointsToRender)
+        .pointLat('lat')
+        .pointLng('lng')
+        .pointColor('color')
+        .pointAltitude('altitude')
+        .pointRadius('radius')
+        .pointsMerge(false);
+
+    }, { passive: true });
+  }
 
 });

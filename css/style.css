@@ -374,6 +374,10 @@ img {
   position: relative;
   overflow: hidden;
   text-align: center;
+  background: var(--bg-primary);
+  /* Use a gradient mask to fade out the bottom of the hero section into the about section */
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
 }
 
 .hero-content {
@@ -712,6 +716,96 @@ img {
 
 .code-boolean {
   color: #f78c6c;
+}
+
+/* Scroll To Type Module */
+.scroll-type-section {
+  height: 250vh;
+  padding: 0;
+  position: relative;
+}
+
+.scroll-type-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+}
+
+.scroll-type-sticky .container {
+  width: 100%;
+}
+
+.type-char {
+  transition: opacity 0.1s ease-out, text-shadow 0.1s ease-out;
+}
+
+/* Global Reach Scroll Module */
+.scroll-reach-section {
+  height: 400vh;
+  padding: 0;
+  position: relative;
+  background: var(--bg-primary);
+}
+
+.scroll-reach-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.global-reach-content {
+  position: relative;
+  z-index: 10;
+  padding-top: var(--section-padding);
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.globe-overlay {
+  margin-top: 40px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.globe-title {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.globe-subtitle {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--accent-primary);
+}
+
+.globe-viz-container {
+  position: absolute;
+  bottom: -40vh;
+  /* Drop the sphere low so it feels huge at the bottom */
+  left: 0;
+  width: 100%;
+  height: 120vh;
+  /* Make the canvas massive so it covers bottom space nicely */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  z-index: 1;
+}
+
+.globe-viz-container:active {
+  cursor: grabbing;
 }
 
 /* ── Skills / Marquee ── */
